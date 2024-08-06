@@ -1,7 +1,7 @@
 {
   "name": "@kne-components/components-widget",
   "version": "0.1.0",
-  "description": "一些暂时不好分类的组件集合",
+  "description": "一些暂时不好分类的组件集合.",
   "scripts": {
     "init": "husky",
     "start": "cross-env PORT=3010 COMPONENTS_NAME=components-widget MODULES_DEV_PUBLIC_URL=/ craco start",
