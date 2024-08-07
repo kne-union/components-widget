@@ -9,6 +9,14 @@
         {
           "name": "_AliSpeech",
           "packageName": "@components/AliSpeech"
+        },
+        {
+          "name": "antd",
+          "packageName": "antd"
+        },
+        {
+          "name": "remoteLoader",
+          "packageName": "@kne/remote-loader"
         }
       ]
     }

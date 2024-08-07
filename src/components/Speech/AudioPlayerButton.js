@@ -45,6 +45,10 @@ export const withAudioPlayer = (WrappedComponent) => {
   };
 };
 
+export const AudioPlayerRender = withAudioPlayer(({ children, ...props }) => {
+  return children(props);
+});
+
 const AudioPlayerButton = withAudioPlayer(({ playing, ...props }) => {
   return <Button {...props}>{playing ? '正在播放...' : '点击播放'}</Button>;
 });
