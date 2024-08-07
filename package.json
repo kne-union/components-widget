@@ -1,6 +1,6 @@
 {
   "name": "@kne-components/components-widget",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "一些暂时不好分类的组件集合.",
   "scripts": {
     "init": "husky",
@@ -83,6 +83,7 @@
     "sass": "^1.75.0"
   },
   "dependencies": {
+    "@kne/compose": "^0.1.0",
     "@kne/use-event": "^0.1.5",
     "@kne/use-ref-callback": "^0.1.2",
     "uuid": "^10.0.0"

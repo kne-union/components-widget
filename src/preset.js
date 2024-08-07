@@ -31,11 +31,13 @@ export const globalInit = async () => {
 
     return (params) => {
       if (params.hasOwnProperty('loader') && typeof params.loader === 'function') {
-        return Promise.resolve(params.loader(omit(params, ['loader']))).then((data) => ({
-          data: {
-            code: 0, data
-          }
-        })).catch((err) => {
+        return Promise.resolve(params.loader(omit(params, ['loader']))).then((data) => {
+          return ({
+            data: {
+              code: 0, data
+            }
+          });
+        }).catch((err) => {
           message.error(err.message || '请求发生错误');
           return { data: { code: 500, msg: err.message } };
         });

@@ -12,7 +12,7 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
     appKey, taskId, onChange: (data) => {
       setResult((result) => result + data.result);
     }, getToken: async () => {
-      const { data } = await ajax(Object.assign({}, apis.aliSpeech.getToken))();
+      const { data } = await ajax(Object.assign({}, apis.aliSpeech.getToken));
       if (data.code !== 0) {
         return;
       }
@@ -20,12 +20,12 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
     }
   });
 
-  return <WrappedComponent result={result} onStart={async (...args) => {
+  return <WrappedComponent {...props} result={result} onStart={async (...args) => {
     setResult('');
     await start(...args);
   }} onComplete={async (chunks) => {
     const { taskId, messageId } = end();
-    const file = new File(new Blob(chunks, { type: 'audio/wav' }), `${taskId}-${messageId}.wav`, { type: 'audio/wav' });
+    const file = new File([new Blob(chunks, { type: 'audio/wav' })], `${taskId}-${messageId}.wav`, { type: 'audio/wav' });
     const { data: resData } = await ajaxForm(Object.assign({}, {
       data: { file }
     }));

@@ -44,7 +44,7 @@ export const withAudioRecord = (WrappedComponent) => {
       await handlerComplete(chunks);
     });
 
-    return <WrappedComponent {...props} recording={recording} onClick={async () => {
+    return <WrappedComponent {...props} recording={recording} start={start} stop={stop} onClick={async () => {
       if (recording) {
         await stop();
       } else {
@@ -54,9 +54,13 @@ export const withAudioRecord = (WrappedComponent) => {
   };
 };
 
+export const AudioRecordRender = ({ children, ...props }) => {
+  return children(props);
+};
+
 const AudioRecordButton = withAudioRecord(createWithRemoteLoader({
   modules: ['components-core:LoadingButton']
-})(({ remoteModules, recording, children, ...props }) => {
+})(({ remoteModules, recording, children, start, stop, ...props }) => {
   const [LoadingButton] = remoteModules;
   return <LoadingButton {...props}>{children ? children(recording) : (recording ? '正在录制' : '点击开始')}</LoadingButton>;
 }));
