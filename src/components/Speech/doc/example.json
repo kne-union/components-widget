@@ -9,6 +9,10 @@
         {
           "name": "_Speech",
           "packageName": "@components/Speech"
+        },
+        {
+          "name": "antd",
+          "packageName": "antd"
         }
       ]
     }

@@ -1,44 +1,59 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from 'antd';
+
+export const useAudioPlayer = ({ src }) => {
+  const [playing, setPlaying] = useState(false);
+  const audio = useMemo(() => {
+    if (!src) {
+      return;
+    }
+    return new Audio(src instanceof Blob ? URL.createObjectURL(src) : src);
+  }, [src]);
+
+  useEffect(() => {
+    audio.addEventListener('ended', () => {
+      setPlaying(false);
+    });
+    return () => {
+      if (src instanceof Blob) {
+        URL.revokeObjectURL(audio.src);
+      }
+    };
+  }, [audio, src]);
+
+  return {
+    playing, play: async () => {
+      audio.currentTime = 0;
+      await audio.play();
+      setPlaying(true);
+    }, pause: () => {
+      audio.pause();
+      setPlaying(false);
+    }, getDuration: async () => {
+      if (!audio.duration) {
+        return new Promise((resolve, reject) => {
+          audio.addEventListener('loadedmetadata', () => {
+            resolve();
+          });
+          audio.addEventListener('error', (e) => {
+            reject(e);
+          });
+        });
+      }
+      return audio.duration * 1000;
+    }
+  };
+};
 
 export const withAudioPlayer = (WrappedComponent) => {
   return ({ src, ...props }) => {
-    const ref = useRef(null);
-    const [playing, setPlaying] = useState(false);
-    useEffect(() => {
-      if (!src) {
-        return;
-      }
-      const audio = new Audio(src instanceof Blob ? URL.createObjectURL(src) : src);
-      const events = [['loadeddata', () => {
-        console.log('数据加载完成');
-        ref.current = audio;
-      }], ['ended', () => {
-        console.log('播放完毕');
-        setPlaying(false);
-      }]];
-
-      events.forEach(([name, handler]) => audio.addEventListener(name, handler));
-      return () => {
-        events.forEach(([name, handler]) => audio.removeEventListener(name, handler));
-        if (src instanceof Blob) {
-          URL.revokeObjectURL(audio.src);
-        }
-      };
-    }, [src]);
-
+    const { playing, play, pause } = useAudioPlayer({ src });
     return <>
       <WrappedComponent {...props} playing={playing} onClick={() => {
-        if (!ref.current) {
-          return;
-        }
         if (playing) {
-          ref.current.pause();
-          setPlaying(false);
+          pause();
         } else {
-          ref.current.currentTime = 0;
-          ref.current.play();
-          setPlaying(true);
+          play();
         }
       }} />
     </>;
