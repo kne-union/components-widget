@@ -4,7 +4,7 @@ import useSpeech from './useSpeech';
 
 const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
   modules: ['components-core:Global@usePreset']
-})(({ remoteModules, appKey, taskId, onComplete, ...props }) => {
+})(({ remoteModules, appKey, taskId, onComplete, onUpload, audioName, ...props }) => {
   const [usePreset] = remoteModules;
   const { ajax, ajaxForm, apis } = usePreset();
   const [result, setResult] = useState('');
@@ -25,14 +25,12 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
     await start(...args);
   }} onComplete={async (chunks) => {
     const { taskId, messageId } = end();
-    const file = new File([new Blob(chunks, { type: 'audio/wav' })], `${taskId}-${messageId}.wav`, { type: 'audio/wav' });
-    const { data: resData } = await ajaxForm(Object.assign({}, {
-      data: { file }
-    }));
+    const file = new File([new Blob(chunks, { type: 'audio/wav' })], `${audioName || `${taskId}-${messageId}`}.wav`, { type: 'audio/wav' });
+    const { data: resData } = await (typeof onUpload === 'function' ? onUpload : apis.ossUpload)({file});
     if (resData.code !== 0) {
       return;
     }
-    onComplete && onComplete({ taskId, messageId, audio: resData.data });
+    onComplete && onComplete({ taskId, messageId, result, audio: resData.data });
   }} />;
 });
 
