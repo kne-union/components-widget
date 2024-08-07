@@ -56,9 +56,9 @@ export const withAudioRecord = (WrappedComponent) => {
 
 const AudioRecordButton = withAudioRecord(createWithRemoteLoader({
   modules: ['components-core:LoadingButton']
-})(({ remoteModules, recording, ...props }) => {
+})(({ remoteModules, recording, children, ...props }) => {
   const [LoadingButton] = remoteModules;
-  return <LoadingButton {...props}>{recording ? '正在录制' : '点击开始'}</LoadingButton>;
+  return <LoadingButton {...props}>{children ? children(recording) : (recording ? '正在录制' : '点击开始')}</LoadingButton>;
 }));
 
 export default AudioRecordButton;
