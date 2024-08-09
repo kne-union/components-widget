@@ -29,19 +29,20 @@ const BaseExample = createWithRemoteLoader({
   const formModal = useFormModal();
   const { ajax } = usePreset();
   const [params, setParams] = useState(null);
+  const ajaxForm = async ({ data }) => {
+    console.log(data);
+    return {
+      data: {
+        code: 0, data: { id: '111111' }
+      }
+    };
+  };
   return <PureGlobal preset={{
-    ajax, ajaxForm: async ({ data }) => {
-      console.log(data);
-      return {
-        data: {
-          code: 0, data: { id: '111111' }
-        }
-      };
-    }, apis: {
-      aliSpeech: {
+    ajax, ajaxForm, apis: {
+      ossUpload: ajaxForm, aliSpeech: {
         getToken: {
           loader: async () => {
-            return { token: params.token };
+            return params;
           }
         }
       }
@@ -75,12 +76,12 @@ const BaseExample = createWithRemoteLoader({
       </InfoPage.Part>
       {params && <>
         <InfoPage.Part title="普通示例">
-          <AliSpeech appKey={params.appKey} taskId={AliSpeech.getUUID()} onComplete={(message) => {
+          <AliSpeech taskId={AliSpeech.getUUID()} onComplete={(message) => {
             console.log(message);
           }} />
         </InfoPage.Part>
         <InfoPage.Part title="children render用法">
-          <AliSpeechRender appKey={params.appKey} taskId={AliSpeech.getUUID()} onComplete={(message) => {
+          <AliSpeechRender taskId={AliSpeech.getUUID()} onComplete={(message) => {
             console.log('>>>>>>>>>>>>>>>', message);
           }}>{({ recording, result, onClick }) => {
             return <Space direction="vertical">

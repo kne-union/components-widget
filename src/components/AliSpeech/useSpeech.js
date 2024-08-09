@@ -2,13 +2,15 @@ import { useRef } from 'react';
 import useRefCallback from '@kne/use-ref-callback';
 import getUUId from './getUUID';
 
-const useSpeech = ({ appKey, taskId, getToken, onChange }) => {
+const useSpeech = ({ taskId, getToken, onChange }) => {
   const wsRef = useRef(null);
   const start = useRefCallback(async ({ stream }) => {
-    const token = await getToken({ appKey });
-    if (!token) {
+    const tokenRes = await getToken();
+    if (!tokenRes) {
       throw new Error('获取token失败');
     }
+
+    const { token, appKey } = tokenRes;
     const ws = new WebSocket(`wss://nls-gateway-cn-shanghai.aliyuncs.com/ws/v1?token=${token}`);
     const messageId = getUUId();
     await new Promise((resolve) => {
@@ -36,6 +38,9 @@ const useSpeech = ({ appKey, taskId, getToken, onChange }) => {
         if (data.header.name === 'TranscriptionStarted') {
           resolve();
         }
+        if (data.header.name === 'TranscriptionResultChanged') {
+          onChange && onChange(data.payload);
+        }
         if (data.header.name === 'SentenceEnd') {
           onChange && onChange(data.payload);
         }
@@ -59,13 +64,13 @@ const useSpeech = ({ appKey, taskId, getToken, onChange }) => {
     audioInput.connect(scriptProcessor);
     scriptProcessor.connect(audioContext.destination);
     console.log('开始识别');
-    wsRef.current = { ws, taskId, messageId, scriptProcessor, audioInput, stream, audioContext };
+    wsRef.current = { ws, taskId, messageId, scriptProcessor, audioInput, stream, audioContext, appKey };
   }), end = useRefCallback(() => {
     if (!wsRef.current) {
       console.warn('连接尚未建立或者已经断开');
       return;
     }
-    const { ws, taskId, messageId, scriptProcessor, audioInput, audioContext } = wsRef.current;
+    const { ws, taskId, messageId, scriptProcessor, audioInput, audioContext, appKey } = wsRef.current;
     ws.send(JSON.stringify({
       'header': {
         'message_id': messageId,
