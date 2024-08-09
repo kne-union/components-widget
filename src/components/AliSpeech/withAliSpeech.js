@@ -9,7 +9,7 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
   const { ajax, apis } = usePreset();
   const [resultChunks, setResultChunks] = useState({});
   const result = useMemo(() => {
-    return Object.keys(resultChunks).sort().map((index) => resultChunks[index]).join('');
+    return Object.keys(resultChunks).sort((a, b) => a - b).map((index) => resultChunks[index]).join('');
   }, [resultChunks]);
   const { start, end } = useSpeech({
     taskId, onChange: (data) => {
