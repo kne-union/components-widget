@@ -1,6 +1,6 @@
 {
   "name": "@kne-components/components-widget",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "一些暂时不好分类的组件集合.",
   "scripts": {
     "init": "husky",
