@@ -3,13 +3,14 @@ import { App } from 'antd';
 import useRefCallback from '@kne/use-ref-callback';
 import { createWithRemoteLoader } from '@kne/remote-loader';
 
-export const useAudioRecord = ({ onComplete, onData, onStart }) => {
+export const useAudioRecord = ({ onComplete, onData, onStart, onCancel }) => {
   const [recording, setRecording] = useState(false);
   const audioRef = useRef([]);
   const { message } = App.useApp();
   const handlerComplete = useRefCallback(onComplete);
   const handlerData = useRefCallback(onData);
   const handlerStart = useRefCallback(onStart);
+  const handlerCancel = useRefCallback(onCancel);
   const start = useRefCallback(async () => {
     const stream = await window.navigator.mediaDevices.getUserMedia({ audio: true }).catch((e) => {
       message.error('出错，请确保已允许浏览器获取录音权限');
@@ -31,16 +32,26 @@ export const useAudioRecord = ({ onComplete, onData, onStart }) => {
     return { stream, recorder };
   });
 
-  const stop = useRefCallback(async (isUnmount) => {
+  const stopRecord = (isUnmount) => {
     !isUnmount && setRecording(false);
     if (!audioRef.current) {
       return;
     }
-    const { events, recorder, stream, chunks } = audioRef.current;
+    const {events, recorder, stream, chunks} = audioRef.current;
     events.forEach(([name, handler]) => recorder.removeEventListener(name, handler));
     stream.getTracks().forEach(track => track.stop());
     audioRef.current = null;
+    return chunks;
+  };
+
+  const stop = useRefCallback(async (isUnmount) => {
+    const chunks = stopRecord(isUnmount);
     await handlerComplete(chunks);
+  });
+
+  const cancel = useRefCallback(async () => {
+    stopRecord();
+    await handlerCancel();
   });
 
   const change = useRefCallback(async () => {
@@ -52,17 +63,18 @@ export const useAudioRecord = ({ onComplete, onData, onStart }) => {
   });
 
   return {
-    recording, start, stop, change
+    recording, start, stop, cancel, change
   };
 };
 
 export const withAudioRecord = (WrappedComponent) => {
-  return ({ onComplete, onData, onStart, ...props }) => {
+  return ({onComplete, onData, onStart, onCancel, ...props}) => {
     const {
-      recording, start, stop, change
-    } = useAudioRecord({ onComplete, onData, onStart });
+      recording, start, stop, cancel, change
+    } = useAudioRecord({onComplete, onData, onStart, onCancel});
 
-    return <WrappedComponent {...props} recording={recording} start={start} stop={stop} onClick={change} />;
+    return <WrappedComponent {...props} recording={recording} start={start} stop={stop} cancel={cancel}
+                             onClick={change}/>;
   };
 };
 
