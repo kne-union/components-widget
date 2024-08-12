@@ -1,10 +1,12 @@
 import { createWithRemoteLoader } from '@kne/remote-loader';
 import { useState, useMemo } from 'react';
 import useSpeech from './useSpeech';
+import { useAudioRecord } from '@components/Speech';
+import useRefCallback from '@kne/use-ref-callback';
 
-const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
+export const AliSpeechRender = createWithRemoteLoader({
   modules: ['components-core:Global@usePreset']
-})(({ remoteModules, taskId, onComplete, onUpload, audioName, ...props }) => {
+})(({ remoteModules, taskId, onComplete, onUpload, onCancel, audioName, children, ...props }) => {
   const [usePreset] = remoteModules;
   const { ajax, apis } = usePreset();
   const [resultChunks, setResultChunks] = useState({});
@@ -25,10 +27,22 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
     }
   });
 
-  return <WrappedComponent {...props} result={result} onStart={async (...args) => {
+  const { recording, start: startRecord, stop: stopRecord } = useAudioRecord();
+
+  const handlerStart = useRefCallback(async () => {
     setResultChunks([]);
-    await start(...args);
-  }} onComplete={async (chunks) => {
+    const { stream } = await startRecord();
+    await start({ stream });
+  });
+
+  const handlerCancel = useRefCallback(async () => {
+    await stopRecord();
+    end();
+    onCancel && onCancel();
+  });
+
+  const handlerComplete = useRefCallback(async () => {
+    const chunks = await stopRecord();
     const { taskId, messageId } = end();
     const file = new File([new Blob(chunks, { type: 'audio/wav' })], `${audioName || `${taskId}-${messageId}`}.wav`, { type: 'audio/wav' });
     const { data: resData } = await (typeof onUpload === 'function' ? onUpload : apis.ossUpload)({ file });
@@ -36,7 +50,27 @@ const withAliSpeech = (WrappedComponent) => createWithRemoteLoader({
       return;
     }
     onComplete && onComplete({ taskId, messageId, result, audio: resData.data });
-  }} />;
+  });
+
+  const handlerChange = useRefCallback((...args) => recording ? handlerComplete(...args) : handlerStart(...args));
+
+  return children({
+    ...props,
+    recording,
+    result,
+    start: handlerStart,
+    cancel: handlerCancel,
+    complete: handlerComplete,
+    change: handlerChange
+  });
 });
+
+const withAliSpeech = (WrappedComponent) => (props) => {
+  return <AliSpeechRender {...props}>{({ result, start, complete, cancel, ...props }) => <WrappedComponent {...props}
+                                                                                                           result={result}
+                                                                                                           cancel={cancel}
+                                                                                                           onStart={start}
+                                                                                                           onComplete={complete} />}</AliSpeechRender>;
+};
 
 export default withAliSpeech;
