@@ -58,17 +58,22 @@ const BaseExample = createWithRemoteLoader({
       </InfoPage.Part>
       {params && <>
         <InfoPage.Part title="普通示例">
-          <AliSpeech taskId={AliSpeech.getUUID()} onComplete={(message) => {
+          <AliSpeech taskId={AliSpeech.getUUID()} onCancel={() => {
+            console.log('取消');
+          }} onComplete={(message) => {
             console.log(message);
           }} />
         </InfoPage.Part>
         <InfoPage.Part title="children render用法">
-          <AliSpeechRender taskId={AliSpeech.getUUID()} onComplete={(message) => {
+          <AliSpeechRender taskId={AliSpeech.getUUID()} onCancel={() => {
+            console.log('取消');
+          }} onComplete={(message) => {
             console.log('>>>>>>>>>>>>>>>', message);
-          }}>{({ recording, result, onClick }) => {
+          }}>{({ recording, result, change, cancel }) => {
             return <Space direction="vertical">
               {result && <Alert message={result} />}
-              <Button onClick={onClick}>{recording ? '录音中' : '点击开始'}</Button>
+              <Button onClick={change}>{recording ? '录音中' : '点击开始'}</Button>
+              {recording && <Button onClick={cancel}>取消</Button>}
             </Space>;
           }}</AliSpeechRender>
         </InfoPage.Part>

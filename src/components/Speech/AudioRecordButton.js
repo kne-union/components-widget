@@ -3,7 +3,8 @@ import { App } from 'antd';
 import useRefCallback from '@kne/use-ref-callback';
 import { createWithRemoteLoader } from '@kne/remote-loader';
 
-export const useAudioRecord = ({ onComplete, onData, onStart }) => {
+export const useAudioRecord = (options) => {
+  const { onComplete, onData, onStart } = Object.assign({}, options);
   const [recording, setRecording] = useState(false);
   const audioRef = useRef([]);
   const { message } = App.useApp();
@@ -34,13 +35,14 @@ export const useAudioRecord = ({ onComplete, onData, onStart }) => {
   const stop = useRefCallback(async (isUnmount) => {
     !isUnmount && setRecording(false);
     if (!audioRef.current) {
-      return;
+      return [];
     }
     const { events, recorder, stream, chunks } = audioRef.current;
     events.forEach(([name, handler]) => recorder.removeEventListener(name, handler));
     stream.getTracks().forEach(track => track.stop());
     audioRef.current = null;
     await handlerComplete(chunks);
+    return chunks;
   });
 
   const change = useRefCallback(async () => {
