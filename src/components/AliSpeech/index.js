@@ -1,8 +1,7 @@
-import { AudioRecordButton, withAudioRecord } from '@components/Speech';
-import withAliSpeech from './withAliSpeech';
+import { AudioRecordButton } from '@components/Speech';
+import withAliSpeech, { AliSpeechRender } from './withAliSpeech';
 import getUUID from './getUUID';
 import useSpeech from './useSpeech';
-import compose from '@kne/compose';
 
 const AliSpeech = withAliSpeech(({ result, onStart, onComplete, ...props }) => {
   return <>
@@ -11,16 +10,12 @@ const AliSpeech = withAliSpeech(({ result, onStart, onComplete, ...props }) => {
   </>;
 });
 
-export const AliSpeechRender = compose(withAliSpeech, withAudioRecord)(({ children, ...props }) => {
-  return children(props);
-});
-
 AliSpeech.getUUID = getUUID;
 AliSpeech.useSpeech = useSpeech;
 AliSpeech.AliSpeechRender = AliSpeechRender;
 
 export default AliSpeech;
 
-export { getUUID, useSpeech };
+export { getUUID, useSpeech, AliSpeechRender };
 
 export { default as getApis } from './getApis';
